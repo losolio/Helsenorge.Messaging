@@ -29,10 +29,11 @@ namespace Helsenorge.Messaging.ServiceBus
         public static readonly Symbol ScheduledEnqueueTimeSymbol = new Symbol("x-opt-scheduled-enqueue-time");
         public static readonly Symbol LockedUntilSymbol = new Symbol("x-opt-locked-until");
         public static readonly Symbol PartitionKeySymbol = new Symbol("x-opt-partition-key");
+        public static readonly Symbol SequenceNumberSymbol = new Symbol("x-opt-sequence-number");
 
         public Func<Task> CompleteAction { get; set; }
         public Func<Task> DeadLetterAction { get; set; }
-        public Func<Guid, string, Task<DateTime>> RenewLockAction { get; set; }
+        public Func<Task<DateTime>> RenewLockAction { get; set; }
 
         public ServiceBusMessage(Message implementation)
         {
@@ -263,41 +264,12 @@ namespace Helsenorge.Messaging.ServiceBus
         [DebuggerStepThrough]
         public override string ToString() => string.Format(CultureInfo.CurrentCulture, "{{MessageId:{0}}}", MessageId);
 
-        private const int GuidSize = 16;
-
-        private Guid? _lockTokenGuid;
-
-        private string PartitionKey => _implementation.MessageAnnotations?.Map.ContainsKey(PartitionKeySymbol) == true
-            ? (string)_implementation.MessageAnnotations[PartitionKeySymbol] : null;
-
-        private Guid LockToken
-        {
-            get
-            {
-                if (!_lockTokenGuid.HasValue)
-                {
-                    // Microsoft.Azure.ServiceBus.Amqp.AmqpMessageConverter
-                    if (_implementation.DeliveryTag.Length == GuidSize)
-                    {
-                        var guidBuffer = new byte[GuidSize];
-                        Buffer.BlockCopy(_implementation.DeliveryTag, 0, guidBuffer, 0, GuidSize);
-                        _lockTokenGuid = new Guid(guidBuffer);
-                    }
-                    else
-                    {
-                        _lockTokenGuid = Guid.Empty;
-                    }
-                }
-                return _lockTokenGuid.Value;
-            }
-        }
-
         public DateTime LockedUntil => (DateTime?)_implementation.MessageAnnotations?[LockedUntilSymbol]
                                        ?? DateTime.MinValue;
 
         public void RenewLock()
         {
-            var task = RenewLockAction?.Invoke(LockToken, PartitionKey);
+            var task = RenewLockAction?.Invoke();
             var lockedUntilUtc = task?.Result ?? DateTime.MinValue;
             _implementation.MessageAnnotations[LockedUntilSymbol] = lockedUntilUtc;
         }

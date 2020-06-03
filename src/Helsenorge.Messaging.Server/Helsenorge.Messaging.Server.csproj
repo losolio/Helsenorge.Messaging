@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>net461;net471</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
     <AssemblyName>Helsenorge.Messaging.Server</AssemblyName>
     <RootNamespace>Helsenorge.Messaging.Server</RootNamespace>
 	  <ProjectGuid>{F8228F1E-51B0-4643-B4B2-CE59491853E2}</ProjectGuid>

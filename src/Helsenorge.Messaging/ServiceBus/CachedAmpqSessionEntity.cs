@@ -6,12 +6,12 @@ namespace Helsenorge.Messaging.ServiceBus
 {
     internal abstract class CachedAmpqSessionEntity : ICachedMessagingEntity
     {
-        private readonly ServiceBusConnection _connection;
+        protected readonly ServiceBusConnection Connection;
         private Session _session;
 
         protected CachedAmpqSessionEntity(ServiceBusConnection connection)
         {
-            _connection = connection ?? throw new ArgumentNullException(nameof(connection));
+            Connection = connection ?? throw new ArgumentNullException(nameof(connection));
         }
 
         /// <summary>
@@ -33,10 +33,10 @@ namespace Helsenorge.Messaging.ServiceBus
         protected void EnsureOpen()
         {
             CheckNotClosed();
-            if (_connection.EnsureConnection() || _session == null || _session.IsClosed)
+            if (Connection.EnsureConnection() || _session == null || _session.IsClosed)
             {
-                _session = new Session(_connection.Connection);
-                OnSessionCreated(_session, _connection.Namespace);
+                _session = new Session(Connection.Connection);
+                OnSessionCreated(_session, Connection.Namespace);
             }
         }
 

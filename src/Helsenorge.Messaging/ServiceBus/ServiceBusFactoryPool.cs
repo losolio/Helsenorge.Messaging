@@ -28,12 +28,13 @@ namespace Helsenorge.Messaging.ServiceBus
         protected override IMessagingFactory CreateEntity(ILogger logger, string id)
         {
             if (_alternateMessagingFactor != null) return _alternateMessagingFactor;
-            return new ServiceBusFactory(new ServiceBusConnection(_settings.ConnectionString), logger);
+            var connection = new ServiceBusConnection(_settings.ConnectionString, logger);
+            return new ServiceBusFactory(connection, logger);
         }
-        public IMessagingMessage CreateMessage(ILogger logger, Stream stream, OutgoingMessage outgoingMessage)
+        public IMessagingMessage CreateMessage(ILogger logger, Stream stream)
         {
             var factory = FindNextFactory(logger);
-            return factory.CreteMessage(stream, outgoingMessage);
+            return factory.CreateMessage(stream);
         }
         public IMessagingFactory FindNextFactory(ILogger logger)
         {

@@ -1,13 +1,18 @@
 ﻿using Amqp;
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Helsenorge.Messaging.ServiceBus
 {
     internal class ServiceBusConnection
     {
         private readonly Address _address;
+
+        public ServiceBusHttpClient HttpClient { get; }
+
         private Connection _connection;
+
         public string Namespace { get; }
 
         public Connection Connection
@@ -19,13 +24,21 @@ namespace Helsenorge.Messaging.ServiceBus
             }
         }
 
-        public ServiceBusConnection(string connectionString)
+        public ServiceBusConnection(string connectionString, ILogger logger)
         {
             if (string.IsNullOrEmpty(connectionString))
             {
                 throw new ArgumentException(nameof(connectionString));
             }
+
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
             _address = new Address(connectionString);
+            HttpClient = new ServiceBusHttpClient(_address, logger);
+
             if (!string.IsNullOrEmpty(_address.Path))
             {
                 Namespace = _address.Path.Substring(1);

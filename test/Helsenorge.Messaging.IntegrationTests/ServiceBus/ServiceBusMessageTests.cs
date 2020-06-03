@@ -124,7 +124,7 @@ namespace Helsenorge.Messaging.IntegrationTests.ServiceBus
             await _fixture.CheckDeadLetterQueueAsync(QueueName, messageText);
         }
 
-        [Fact(Skip = "RenewLock not supported")]
+        [Fact]
         public async Task Should_Renew_Message_Lock()
         {
             var messageText = await _fixture.SendTestMessageAsync(QueueName);

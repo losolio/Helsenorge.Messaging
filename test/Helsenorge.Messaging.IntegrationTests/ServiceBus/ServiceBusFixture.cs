@@ -24,10 +24,10 @@ namespace Helsenorge.Messaging.IntegrationTests.ServiceBus
             {
                 throw new ArgumentNullException(nameof(output));
             }
-            Connection = new ServiceBusConnection(GetConnectionString());
             var loggerFactory = new LoggerFactory();
             loggerFactory.AddProvider(new XUnitLoggerProvider(output));
             _logger = loggerFactory.CreateLogger(typeof(ServiceBusFixture));
+            Connection = new ServiceBusConnection(GetConnectionString(), _logger);
         }
 
         public static string GetConnectionString()
@@ -63,7 +63,7 @@ namespace Helsenorge.Messaging.IntegrationTests.ServiceBus
         public async Task<List<Message>> ReadAllMessagesAsync(string queueName, bool accept = false)
         {
             var list = new List<Message>();
-            var connection = new ServiceBusConnection(GetConnectionString());
+            var connection = new ServiceBusConnection(GetConnectionString(), _logger);
             var session = new Session(connection.Connection);
             var receiverLink = new ReceiverLink(session, $"test-receiver-link-{Guid.NewGuid()}", connection.GetEntityName(queueName));
             Message message;
@@ -86,7 +86,7 @@ namespace Helsenorge.Messaging.IntegrationTests.ServiceBus
             {
                 messageText = $"Test message {Guid.NewGuid()}";
             }
-            var connection = new ServiceBusConnection(GetConnectionString());
+            var connection = new ServiceBusConnection(GetConnectionString(), _logger);
             var session = new Session(connection.Connection);
             var senderLink = new SenderLink(session, $"test-sender-link-{Guid.NewGuid()}", connection.GetEntityName(queueName));
             await senderLink.SendAsync(new Message
@@ -104,7 +104,7 @@ namespace Helsenorge.Messaging.IntegrationTests.ServiceBus
 
         public async Task CheckMessageSentAsync(string queueName, string text)
         {
-            var connection = new ServiceBusConnection(GetConnectionString());
+            var connection = new ServiceBusConnection(GetConnectionString(), _logger);
             var session = new Session(connection.Connection);
             var receiverLink = new ReceiverLink(session, $"test-receiver-link-{Guid.NewGuid()}", connection.GetEntityName(queueName));
             var message = await receiverLink.ReceiveAsync(ServiceBusTestingConstants.DefaultReadTimeout);
